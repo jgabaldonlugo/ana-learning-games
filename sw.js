@@ -1,4 +1,4 @@
-const CACHE = "ana-games-v2";
+const CACHE = "ana-games-v3";
 const ASSETS = [
   "./",
   "./index.html",
@@ -24,10 +24,21 @@ self.addEventListener("activate", e => {
   );
 });
 
-// Cache-first for our own files; network fallback otherwise.
+// HTML pages: network-first (always get the latest game), fall back to cache when offline.
+// Other assets (icons): cache-first for speed.
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
-  e.respondWith(
-    caches.match(e.request).then(hit => hit || fetch(e.request).catch(() => caches.match("./index.html")))
-  );
+  const isHTML = e.request.mode === "navigate" ||
+                 (e.request.headers.get("accept") || "").includes("text/html");
+  if (isHTML) {
+    e.respondWith(
+      fetch(e.request)
+        .then(res => { const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); return res; })
+        .catch(() => caches.match(e.request).then(hit => hit || caches.match("./index.html")))
+    );
+  } else {
+    e.respondWith(
+      caches.match(e.request).then(hit => hit || fetch(e.request).catch(() => caches.match("./index.html")))
+    );
+  }
 });
