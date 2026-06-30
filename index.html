@@ -4,6 +4,12 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Ana's Learning Games ⭐</title>
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#ff5fa2" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Ana's Games" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
 <style>
   *{box-sizing:border-box;}
   html,body{height:100%;margin:0;}
@@ -31,7 +37,27 @@
     <p class="sub">Pick a game and have fun!</p>
     <a class="game math" href="math.html">⭐ Math Stars</a>
     <a class="game reading" href="reading.html">🚀 Reading Rockets</a>
+    <button id="installBtn" style="display:none; width:100%; border:none; border-radius:20px; padding:16px;
+      font-family:inherit; font-size:1.15rem; font-weight:bold; color:#7a5a00; cursor:pointer;
+      background:linear-gradient(120deg,#ffe88a,#ffd23f); box-shadow:0 6px 0 rgba(0,0,0,.15); margin-bottom:14px;">
+      📲 Install on this tablet
+    </button>
     <div class="foot">🎤 Tap "Allow" the first time so Reading Rockets can hear you read!</div>
   </div>
+  <script>
+    // Register service worker for offline + installability
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(()=>{}));
+    }
+    // Custom install button (Android/Chrome)
+    let deferred=null;
+    const btn=document.getElementById("installBtn");
+    window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferred=e; btn.style.display="block"; });
+    btn.addEventListener("click", async () => {
+      if(!deferred) return;
+      deferred.prompt(); await deferred.userChoice; deferred=null; btn.style.display="none";
+    });
+    window.addEventListener("appinstalled", () => { btn.style.display="none"; });
+  </script>
 </body>
 </html>
