@@ -175,6 +175,7 @@
   </section>
 </div>
 
+<script src="config.js"></script>
 <script>
 (function(){
   // ---------- Word & sentence banks (Grade 2 sight words + decodable sentences) ----------
@@ -359,6 +360,8 @@
     let pb=false;
     if(wcpm>bestWCPM){ bestWCPM=wcpm; localStorage.setItem(LS_WCPM,bestWCPM); pb=true; }
     hud();
+    logProgress({game:"reading", mode:"speed", level:level, correct:speedCorrect, total:speedAttempt,
+                 score:speedCorrect, streak:best, wcpm:wcpm, stars:earned});
     yay();
     $("timerbar").style.display="none";
     $("wcpmBlock").style.display="block"; $("wcpmVal").textContent=wcpm;
@@ -506,6 +509,8 @@
       `<div><span class="num" id="rScore">0</span>Points</div>`;
     let earned=0; if(good>=8)earned=3; else if(good>=6)earned=2; else if(good>=3)earned=1;
     totalStars+=earned; localStorage.setItem(LS,totalStars); hud();
+    logProgress({game:"reading", mode:mode, level:level, correct:good, total:ROUND,
+                 score:score, streak:best, stars:earned});
     $("rCorrect").textContent=good+"/"+ROUND; $("rBest").textContent=best; $("rScore").textContent=score;
     $("earnedStars").textContent= earned>0?"⭐".repeat(earned)+"  (+"+earned+")":"Keep practicing! 💪";
     $("resultStar").textContent= good>=8?"🏆":good>=6?"🌟":good>=3?"😊":"🌱";
@@ -514,6 +519,25 @@
       : good>=3?"Nice work — you're getting faster!"
       : "Good try! Reading out loud every day helps 💪";
     show("results");
+  }
+
+  // ---------- Progress logging (shared format with math game) ----------
+  function logProgress(rec){
+    rec.ts = Date.now();
+    rec.child = (window.ANA_CHILD || "Ana");
+    try{
+      const arr = JSON.parse(localStorage.getItem("anaProgress")||"[]");
+      arr.push(rec);
+      if(arr.length>500) arr.splice(0, arr.length-500);
+      localStorage.setItem("anaProgress", JSON.stringify(arr));
+    }catch(e){}
+    try{
+      const url = window.ANA_CLOUD_URL;
+      if(url){
+        const body = JSON.stringify(Object.assign({token:(window.ANA_CLOUD_TOKEN||"")}, rec));
+        fetch(url, {method:"POST", mode:"no-cors", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:body});
+      }
+    }catch(e){}
   }
 
   // ---------- Trophies / note ----------

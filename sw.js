@@ -1,9 +1,11 @@
-const CACHE = "ana-games-v3";
+const CACHE = "ana-games-v4";
 const ASSETS = [
   "./",
   "./index.html",
   "./math.html",
   "./reading.html",
+  "./parent.html",
+  "./config.js",
   "./manifest.webmanifest",
   "./icon-192.png",
   "./icon-512.png",

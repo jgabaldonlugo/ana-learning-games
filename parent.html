@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Ana's Progress — Parents</title>
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#3aa0ff" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<link rel="icon" type="image/png" href="favicon.png" />
+<style>
+  *{box-sizing:border-box;}
+  body{font-family:system-ui,"Segoe UI",sans-serif; color:#22324d; margin:0;
+    background:linear-gradient(135deg,#eaf4ff,#f3ecff); min-height:100vh; padding:16px;}
+  .wrap{max-width:860px; margin:0 auto;}
+  h1{font-size:1.5rem; margin:6px 0 2px; color:#3a6ea5;}
+  .sub{color:#7a86a8; margin:0 0 18px; font-size:.95rem;}
+  .cards{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin-bottom:18px;}
+  .card{background:#fff; border-radius:16px; padding:16px; box-shadow:0 6px 18px rgba(80,90,140,.12);}
+  .card .lbl{font-size:.78rem; color:#8a93b0; text-transform:uppercase; letter-spacing:.5px;}
+  .card .val{font-size:1.9rem; font-weight:700; margin-top:4px;}
+  .c-blue .val{color:#3aa0ff} .c-green .val{color:#34c759} .c-pink .val{color:#ff5fa2}
+  .c-purple .val{color:#9b6dff} .c-orange .val{color:#ff9f43}
+  .panel{background:#fff; border-radius:16px; padding:16px; box-shadow:0 6px 18px rgba(80,90,140,.12); margin-bottom:18px;}
+  .panel h2{font-size:1.05rem; margin:0 0 12px; color:#3a6ea5;}
+  table{width:100%; border-collapse:collapse; font-size:.9rem;}
+  th,td{text-align:left; padding:8px 6px; border-bottom:1px solid #eef1f7;}
+  th{color:#8a93b0; font-weight:600; font-size:.8rem; text-transform:uppercase;}
+  tbody tr:hover{background:#f7faff;}
+  .pill{display:inline-block; padding:2px 8px; border-radius:10px; font-size:.78rem; font-weight:600;}
+  .pill.math{background:#ffe3f0; color:#d83b82;} .pill.reading{background:#e1f0ff; color:#2f7fd1;}
+  .acc-good{color:#34c759; font-weight:700;} .acc-mid{color:#ff9f43; font-weight:700;} .acc-low{color:#ff5b5b; font-weight:700;}
+  canvas{width:100%; height:120px; display:block;}
+  .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px;}
+  button{border:none; border-radius:12px; padding:10px 16px; font-family:inherit; font-weight:600;
+    font-size:.9rem; cursor:pointer; box-shadow:0 4px 0 rgba(0,0,0,.1);}
+  .b-blue{background:#3aa0ff; color:#fff;} .b-green{background:#34c759; color:#fff;}
+  .b-gray{background:#eef1f7; color:#445;} .b-red{background:#ffe0e0; color:#c0392b;}
+  .muted{color:#9aa3bd; font-style:italic;}
+  .empty{text-align:center; padding:30px; color:#9aa3bd;}
+  .cloud-tag{font-size:.78rem; padding:3px 10px; border-radius:10px; margin-left:8px;}
+  .cloud-on{background:#e3f9ea; color:#1f9d55;} .cloud-off{background:#f0f0f5; color:#888;}
+  /* PIN gate */
+  #gate{position:fixed; inset:0; background:linear-gradient(135deg,#eaf4ff,#f3ecff);
+    display:flex; align-items:center; justify-content:center; z-index:10;}
+  .gatebox{background:#fff; border-radius:20px; padding:28px; width:300px; text-align:center;
+    box-shadow:0 12px 40px rgba(80,90,140,.25);}
+  .gatebox h2{margin:0 0 6px; color:#3a6ea5;}
+  .gatebox p{color:#8a93b0; font-size:.85rem; margin:0 0 16px;}
+  #pin{width:100%; font-size:1.6rem; text-align:center; letter-spacing:8px; padding:10px;
+    border:2px solid #d6def0; border-radius:12px; margin-bottom:12px;}
+  #pinErr{color:#ff5b5b; font-size:.85rem; height:18px;}
+</style>
+</head>
+<body>
+<div id="gate">
+  <div class="gatebox">
+    <h2>🔒 Grown-ups only</h2>
+    <p>Enter the parent PIN to see Ana's progress.</p>
+    <input id="pin" type="password" inputmode="numeric" maxlength="8" placeholder="••••" />
+    <div id="pinErr"></div>
+    <button class="b-blue" style="width:100%;" id="pinBtn">Unlock</button>
+  </div>
+</div>
+
+<div class="wrap" id="app" style="display:none;">
+  <h1>📊 <span id="childName">Ana</span>'s Progress <span id="cloudTag"></span></h1>
+  <p class="sub">A friendly summary of practice on Math Stars and Reading Rockets.</p>
+
+  <div class="row">
+    <button class="b-blue" id="refreshBtn">🔄 Refresh</button>
+    <button class="b-green" id="shareBtn">📤 Share summary</button>
+    <button class="b-gray" id="csvBtn">⬇️ Export CSV</button>
+    <button class="b-red" id="clearBtn">🗑️ Clear data</button>
+    <a href="index.html" style="margin-left:auto; text-decoration:none; color:#3aa0ff; font-weight:600;">← Back to games</a>
+  </div>
+
+  <div class="cards" id="cards"></div>
+
+  <div class="panel">
+    <h2>🚀 Reading speed over time (words per minute)</h2>
+    <canvas id="wcpmChart"></canvas>
+    <div class="muted" id="wcpmNote" style="font-size:.82rem; margin-top:6px;"></div>
+  </div>
+
+  <div class="panel">
+    <h2>🎯 Accuracy over time</h2>
+    <canvas id="accChart"></canvas>
+  </div>
+
+  <div class="panel">
+    <h2>📝 Recent sessions</h2>
+    <div id="tableWrap"></div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const PIN = (window.ANA_PARENT_PIN || "1379");
+
+  // ----- PIN gate (light protection to keep kids out) -----
+  function unlock(){
+    if($("pin").value === String(PIN)){
+      sessionStorage.setItem("anaParentOk","1");
+      $("gate").style.display="none"; $("app").style.display="block";
+      loadAll().then(render);
+    } else { $("pinErr").textContent="Wrong PIN, try again."; $("pin").value=""; }
+  }
+  $("pinBtn").addEventListener("click", unlock);
+  $("pin").addEventListener("keydown", e=>{ if(e.key==="Enter") unlock(); });
+  if(sessionStorage.getItem("anaParentOk")==="1"){ $("gate").style.display="none"; $("app").style.display="block"; }
+
+  // ----- Data -----
+  function localData(){
+    try{ return JSON.parse(localStorage.getItem("anaProgress")||"[]"); }catch(e){ return []; }
+  }
+  let DATA=[];
+
+  async function loadAll(){
+    let data = localData();
+    // merge cloud if configured
+    const url = window.ANA_CLOUD_URL;
+    if(url){
+      try{
+        const res = await fetch(url + (url.includes("?")?"&":"?") + "action=list&token=" + encodeURIComponent(window.ANA_CLOUD_TOKEN||""));
+        const cloud = await res.json();
+        if(Array.isArray(cloud)){
+          const seen=new Set(data.map(d=>d.ts));
+          cloud.forEach(c=>{ if(!seen.has(c.ts)) data.push(c); });
+        }
+      }catch(e){ /* offline or not set up yet */ }
+    }
+    data.sort((a,b)=>a.ts-b.ts);
+    DATA=data;
+  }
+
+  function fmtDate(ts){ const d=new Date(ts); return d.toLocaleDateString(undefined,{month:"short",day:"numeric"}); }
+  function fmtDateTime(ts){ const d=new Date(ts); return d.toLocaleDateString(undefined,{month:"short",day:"numeric"})+" "+d.toLocaleTimeString(undefined,{hour:"numeric",minute:"2-digit"}); }
+  function acc(r){ return r.total>0 ? Math.round(r.correct/r.total*100) : 0; }
+
+  function daysPracticed(){ return new Set(DATA.map(r=>new Date(r.ts).toDateString())).size; }
+  function dayStreak(){
+    const days=new Set(DATA.map(r=>new Date(r.ts).toDateString()));
+    let streak=0; let d=new Date();
+    for(;;){ if(days.has(d.toDateString())){ streak++; d.setDate(d.getDate()-1);} else break; }
+    // allow "today not yet played" — check from yesterday
+    if(streak===0){ d=new Date(); d.setDate(d.getDate()-1);
+      for(;;){ if(days.has(d.toDateString())){ streak++; d.setDate(d.getDate()-1);} else break; } }
+    return streak;
+  }
+
+  function render(){
+    if(DATA.length===0){
+      $("cards").innerHTML="";
+      $("tableWrap").innerHTML='<div class="empty">No practice recorded yet on this device. Play a few rounds and check back! 🌱<br><br>Tip: progress is saved per device. Turn on cloud sync to see it from anywhere.</div>';
+      drawChart($("wcpmChart"),[],"#3aa0ff"); drawChart($("accChart"),[],"#34c759");
+      return;
+    }
+    const reading = DATA.filter(r=>r.game==="reading");
+    const math = DATA.filter(r=>r.game==="math");
+    const totalStars = DATA.reduce((s,r)=>s+(r.stars||0),0);
+    const bestWCPM = reading.reduce((m,r)=>Math.max(m, r.wcpm||0),0);
+    const accVals = DATA.filter(r=>r.total>0).map(acc);
+    const avgAcc = accVals.length? Math.round(accVals.reduce((a,b)=>a+b,0)/accVals.length):0;
+
+    const cards=[
+      {cls:"c-orange",lbl:"Total Stars",val:"⭐ "+totalStars},
+      {cls:"c-blue",lbl:"Sessions Played",val:DATA.length},
+      {cls:"c-green",lbl:"Avg Accuracy",val:avgAcc+"%"},
+      {cls:"c-pink",lbl:"Best Reading Speed",val:bestWCPM+" wpm"},
+      {cls:"c-purple",lbl:"Days Practiced",val:daysPracticed()},
+      {cls:"c-blue",lbl:"Day Streak 🔥",val:dayStreak()},
+    ];
+    $("cards").innerHTML=cards.map(c=>`<div class="card ${c.cls}"><div class="lbl">${c.lbl}</div><div class="val">${c.val}</div></div>`).join("");
+
+    // charts
+    const wpts = reading.filter(r=>r.wcpm!=null).map(r=>({x:r.ts, y:r.wcpm}));
+    drawChart($("wcpmChart"), wpts, "#3aa0ff", " wpm");
+    $("wcpmNote").textContent = wpts.length
+      ? `Latest: ${wpts[wpts.length-1].y} wpm. Grade-2 spring benchmark is about 100 wpm — watch the line climb over weeks.`
+      : "Play ⏱️ Speed Read (30s) in Reading Rockets to start tracking reading speed.";
+    const apts = DATA.filter(r=>r.total>0).map(r=>({x:r.ts, y:acc(r)}));
+    drawChart($("accChart"), apts, "#34c759", "%");
+
+    // table (most recent first, last 30)
+    const rows=DATA.slice().reverse().slice(0,30).map(r=>{
+      const a=acc(r); const aCls=a>=80?"acc-good":a>=50?"acc-mid":"acc-low";
+      const sc = r.game==="reading"&&r.mode==="speed" ? `${r.correct} words` : `${r.correct}/${r.total}`;
+      const wc = (r.wcpm!=null)? `${r.wcpm} wpm` : "—";
+      return `<tr>
+        <td>${fmtDateTime(r.ts)}</td>
+        <td><span class="pill ${r.game}">${r.game==="math"?"Math":"Reading"}</span></td>
+        <td>${labelMode(r)}</td>
+        <td>${sc}</td>
+        <td class="${aCls}">${r.total>0?a+"%":"—"}</td>
+        <td>${wc}</td>
+        <td>${"⭐".repeat(r.stars||0)||"—"}</td>
+      </tr>`;
+    }).join("");
+    $("tableWrap").innerHTML=`<table><thead><tr>
+      <th>When</th><th>Game</th><th>Activity</th><th>Result</th><th>Accuracy</th><th>Speed</th><th>Stars</th>
+      </tr></thead><tbody>${rows}</tbody></table>`;
+  }
+
+  function labelMode(r){
+    if(r.game==="math"){
+      const lv = r.level? ` (≤${r.level})`:"";
+      return ({add:"Adding",sub:"Subtracting",mix:"Mix"}[r.mode]||r.mode)+lv;
+    }
+    const m={words:"Word Sprint",sentences:"Sentence Stars",listen:"Hear & Repeat",speed:"Speed Read 30s"}[r.mode]||r.mode;
+    return m + (r.level?` (Lv ${r.level})`:"");
+  }
+
+  // ----- tiny canvas line chart -----
+  function drawChart(cv, pts, color, suffix){
+    const dpr=window.devicePixelRatio||1;
+    const w=cv.clientWidth, h=120;
+    cv.width=w*dpr; cv.height=h*dpr;
+    const ctx=cv.getContext("2d"); ctx.scale(dpr,dpr);
+    ctx.clearRect(0,0,w,h);
+    if(pts.length===0){ ctx.fillStyle="#bcc6df"; ctx.font="13px system-ui"; ctx.fillText("No data yet",10,24); return; }
+    const pad=28;
+    const ys=pts.map(p=>p.y); let ymin=Math.min(...ys,0), ymax=Math.max(...ys);
+    if(ymax===ymin) ymax=ymin+1;
+    const xmin=pts[0].x, xmax=pts[pts.length-1].x||xmin+1;
+    const X=t=> pad + (pts.length===1?0:( (t-xmin)/((xmax-xmin)||1) ))*(w-pad-10);
+    const Y=v=> (h-22) - ( (v-ymin)/((ymax-ymin)||1) )*(h-22-8);
+    // gridlines
+    ctx.strokeStyle="#eef1f7"; ctx.lineWidth=1;
+    for(let i=0;i<=2;i++){ const yy=8+i*((h-30)/2); ctx.beginPath(); ctx.moveTo(pad,yy); ctx.lineTo(w-10,yy); ctx.stroke(); }
+    ctx.fillStyle="#9aa3bd"; ctx.font="10px system-ui";
+    ctx.fillText(Math.round(ymax)+(suffix||""), 2, 12);
+    ctx.fillText(Math.round(ymin)+(suffix||""), 2, h-24);
+    // area + line
+    ctx.beginPath(); pts.forEach((p,i)=>{ const x=X(p.x),y=Y(p.y); i?ctx.lineTo(x,y):ctx.moveTo(x,y); });
+    ctx.strokeStyle=color; ctx.lineWidth=2.5; ctx.lineJoin="round"; ctx.stroke();
+    pts.forEach(p=>{ ctx.beginPath(); ctx.arc(X(p.x),Y(p.y),3.2,0,7); ctx.fillStyle=color; ctx.fill(); });
+    // x labels (first & last)
+    ctx.fillStyle="#9aa3bd"; ctx.font="10px system-ui";
+    ctx.fillText(fmtDate(pts[0].x), pad-6, h-6);
+    if(pts.length>1) ctx.fillText(fmtDate(pts[pts.length-1].x), w-46, h-6);
+  }
+
+  // ----- summary text for sharing -----
+  function summaryText(){
+    if(DATA.length===0) return "No practice recorded yet.";
+    const reading=DATA.filter(r=>r.game==="reading");
+    const totalStars=DATA.reduce((s,r)=>s+(r.stars||0),0);
+    const bestWCPM=reading.reduce((m,r)=>Math.max(m,r.wcpm||0),0);
+    const accVals=DATA.filter(r=>r.total>0).map(acc);
+    const avgAcc=accVals.length?Math.round(accVals.reduce((a,b)=>a+b,0)/accVals.length):0;
+    const name=window.ANA_CHILD||"Ana";
+    return `${name}'s practice summary\n`+
+      `• Sessions: ${DATA.length} over ${daysPracticed()} day(s)\n`+
+      `• Total stars: ${totalStars}\n`+
+      `• Average accuracy: ${avgAcc}%\n`+
+      `• Best reading speed: ${bestWCPM} words/min\n`+
+      `• Current day streak: ${dayStreak()}\n`+
+      `(from Ana's Learning Games)`;
+  }
+
+  // ----- buttons -----
+  $("refreshBtn").addEventListener("click", async ()=>{ await loadAll(); render(); });
+  $("shareBtn").addEventListener("click", async ()=>{
+    const text=summaryText();
+    if(navigator.share){ try{ await navigator.share({title:"Ana's progress", text}); return; }catch(e){} }
+    // fallback: mailto
+    location.href="mailto:?subject="+encodeURIComponent("Ana's practice summary")+"&body="+encodeURIComponent(text);
+  });
+  $("csvBtn").addEventListener("click", ()=>{
+    const cols=["ts","date","game","mode","level","correct","total","accuracy","score","streak","wcpm","stars"];
+    const lines=[cols.join(",")].concat(DATA.map(r=>[
+      r.ts, new Date(r.ts).toISOString(), r.game, r.mode, r.level||"",
+      r.correct, r.total, r.total>0?acc(r):"", r.score||"", r.streak||"", r.wcpm!=null?r.wcpm:"", r.stars||0
+    ].join(",")));
+    const blob=new Blob([lines.join("\n")],{type:"text/csv"});
+    const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+    a.download="ana-progress.csv"; a.click();
+  });
+  $("clearBtn").addEventListener("click", ()=>{
+    if(confirm("Clear all saved progress ON THIS DEVICE? This cannot be undone.\n(Cloud data, if any, is not affected.)")){
+      localStorage.removeItem("anaProgress");
+      loadAll().then(render);
+    }
+  });
+
+  // ----- cloud tag + child name -----
+  $("childName").textContent = window.ANA_CHILD || "Ana";
+  const tag=$("cloudTag");
+  if(window.ANA_CLOUD_URL){ tag.className="cloud-tag cloud-on"; tag.textContent="☁ cloud sync on"; }
+  else { tag.className="cloud-tag cloud-off"; tag.textContent="on this device"; }
+
+  // ----- init -----
+  (async function init(){
+    await loadAll();
+    if($("app").style.display!=="none") render();
+  })();
+})();
+</script>
+</body>
+</html>
