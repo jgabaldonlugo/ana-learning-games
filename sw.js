@@ -1,4 +1,4 @@
-const CACHE = "ana-games-v5";
+const CACHE = "ana-games-v6";
 const ASSETS = [
   "./",
   "./index.html",

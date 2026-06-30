@@ -6,4 +6,4 @@ window.ANA_CLOUD_URL = "https://script.google.com/macros/s/AKfycbz5bzxc6uoo28muh
 window.ANA_CLOUD_TOKEN = "";
 window.ANA_CHILD = "Ana";
 // Parent dashboard PIN (keeps kids out of the progress page). Change to your own number.
-window.ANA_PARENT_PIN = "1379";
+window.ANA_PARENT_PIN = "9729";
