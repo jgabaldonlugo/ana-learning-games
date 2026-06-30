@@ -1,4 +1,4 @@
-const CACHE = "ana-games-v1";
+const CACHE = "ana-games-v2";
 const ASSETS = [
   "./",
   "./index.html",
@@ -9,7 +9,8 @@ const ASSETS = [
   "./icon-512.png",
   "./icon-192-maskable.png",
   "./icon-512-maskable.png",
-  "./apple-touch-icon.png"
+  "./apple-touch-icon.png",
+  "./favicon.png"
 ];
 
 self.addEventListener("install", e => {

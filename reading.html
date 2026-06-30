@@ -9,6 +9,7 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<link rel="icon" type="image/png" href="favicon.png" />
 <style>
   :root{
     --ink:#22324d; --pink:#ff5fa2; --blue:#3aa0ff; --green:#34c759;
@@ -45,6 +46,13 @@
            cursor:pointer; font-family:inherit; box-shadow:0 6px 0 rgba(0,0,0,.18);
            transition:transform .08s, box-shadow .08s; text-align:center;}
   .modeBtn:active{transform:translateY(4px); box-shadow:0 2px 0 rgba(0,0,0,.18);}
+  .modeBtn{position:relative;}
+  /* clear "you picked this" highlight */
+  .modeBtn.picked{transform:scale(1.04); box-shadow:0 0 0 4px #fff, 0 0 0 10px var(--green), 0 10px 0 rgba(0,0,0,.18); z-index:2;}
+  .modeBtn.picked::after{content:"✓"; position:absolute; top:50%; right:14px; transform:translateY(-50%);
+    width:34px; height:34px; line-height:34px; text-align:center; background:#fff; color:var(--green);
+    border-radius:50%; font-size:1.4rem; font-weight:bold; box-shadow:0 2px 5px rgba(0,0,0,.3);}
+  .modeBtn[data-mode]:not(.picked){opacity:.45; filter:grayscale(.25);}
   .m-words{background:linear-gradient(120deg,#5ec6ff,#3aa0ff);}
   .m-sentences{background:linear-gradient(120deg,#ff7eb3,#ff5fa2);}
   .m-listen{background:linear-gradient(120deg,#b18cff,#9b6dff);}
@@ -53,9 +61,12 @@
 
   .picker .label{font-weight:bold; color:var(--purple); margin:14px 0 6px; text-align:center;}
   .levelRow{display:flex; gap:8px; justify-content:center; flex-wrap:wrap;}
-  .lvl{border:none; border-radius:14px; padding:10px 16px; font-weight:bold; font-size:1rem; cursor:pointer;
-       font-family:inherit; background:#fff; color:var(--ink); box-shadow:0 4px 0 rgba(0,0,0,.12);}
-  .lvl.sel{background:var(--yellow); color:#7a5a00; transform:translateY(2px);}
+  .lvl{border:4px solid transparent; border-radius:14px; padding:10px 16px; font-weight:bold; font-size:1rem; cursor:pointer;
+       font-family:inherit; background:#fff; color:var(--ink); box-shadow:0 4px 0 rgba(0,0,0,.12); transition:transform .1s;}
+  .lvl:not(.sel){opacity:.55;}
+  .lvl.sel{background:var(--yellow); color:#7a5a00; border-color:var(--green); transform:scale(1.12);
+       box-shadow:0 0 0 4px rgba(52,199,89,.35), 0 4px 0 rgba(0,0,0,.12);}
+  .lvl.sel::after{content:" ✓"; color:var(--green);}
 
   .card-read{background:var(--card); border-radius:24px; padding:30px 18px; text-align:center;
              box-shadow:0 8px 0 rgba(0,0,0,.08); margin-bottom:14px; min-height:150px;
@@ -235,8 +246,8 @@
 
   // ---------- Menu wiring ----------
   document.querySelectorAll(".modeBtn[data-mode]").forEach(b=>{
-    b.addEventListener("click",()=>{document.querySelectorAll(".modeBtn[data-mode]").forEach(x=>x.style.outline="none");
-      mode=b.dataset.mode;b.style.outline="4px solid #fff";});
+    b.addEventListener("click",()=>{document.querySelectorAll(".modeBtn[data-mode]").forEach(x=>x.classList.remove("picked"));
+      mode=b.dataset.mode;b.classList.add("picked");});
   });
   document.querySelectorAll(".lvl").forEach(b=>{
     b.addEventListener("click",()=>{document.querySelectorAll(".lvl").forEach(x=>x.classList.remove("sel"));
@@ -523,7 +534,7 @@
   }
 
   hud(); trophies(); micNote();
-  document.querySelector('.modeBtn[data-mode="words"]').style.outline="4px solid #fff";
+  document.querySelector('.modeBtn[data-mode="words"]').classList.add("picked");
 })();
 </script>
 <script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}</script>
