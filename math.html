@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Ana's Math Stars ⭐</title>
+<style>
+  :root{
+    --bg1:#ffd6f5; --bg2:#c9e7ff; --bg3:#d7ffd9;
+    --ink:#2b2b54; --pink:#ff5fa2; --blue:#4aa8ff; --green:#34c759;
+    --yellow:#ffd23f; --purple:#9b6dff; --card:#ffffff;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%; margin:0;}
+  body{
+    font-family:"Comic Sans MS","Baloo 2",system-ui,sans-serif;
+    color:var(--ink);
+    background:linear-gradient(135deg,var(--bg1),var(--bg2) 50%,var(--bg3));
+    background-size:300% 300%;
+    animation:bgmove 18s ease infinite;
+    display:flex; align-items:center; justify-content:center;
+    min-height:100%; padding:14px; overflow-x:hidden;
+  }
+  @keyframes bgmove{0%{background-position:0 50%}50%{background-position:100% 50%}100%{background-position:0 50%}}
+  .app{
+    width:100%; max-width:520px; background:rgba(255,255,255,.78);
+    border-radius:30px; padding:22px 20px 26px;
+    box-shadow:0 18px 50px rgba(120,80,160,.35);
+    backdrop-filter:blur(6px); position:relative; overflow:hidden;
+  }
+  h1{margin:0 0 4px; text-align:center; font-size:2rem; color:var(--pink);
+     text-shadow:2px 2px 0 #fff, 3px 3px 0 rgba(255,95,162,.3);}
+  .sub{text-align:center; margin:0 0 14px; font-size:.95rem; color:var(--purple); font-weight:bold;}
+
+  /* HUD */
+  .hud{display:flex; justify-content:space-between; gap:8px; margin-bottom:14px;}
+  .chip{flex:1; background:var(--card); border-radius:16px; padding:8px 6px; text-align:center;
+        box-shadow:0 4px 0 rgba(0,0,0,.08); font-weight:bold;}
+  .chip .lbl{display:block; font-size:.7rem; color:#9aa; letter-spacing:.5px;}
+  .chip .val{font-size:1.25rem;}
+  #scoreV{color:var(--blue)} #starsV{color:var(--yellow)} #streakV{color:var(--pink)}
+
+  /* Screens */
+  .screen{display:none; animation:pop .35s ease;}
+  .screen.active{display:block;}
+  @keyframes pop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+
+  .menu-buttons{display:flex; flex-direction:column; gap:12px; margin-top:8px;}
+  .modeBtn{
+    border:none; border-radius:20px; padding:16px; font-size:1.2rem; font-weight:bold;
+    color:#fff; cursor:pointer; font-family:inherit; box-shadow:0 6px 0 rgba(0,0,0,.18);
+    transition:transform .08s, box-shadow .08s; display:flex; align-items:center; justify-content:center; gap:10px;
+  }
+  .modeBtn:active{transform:translateY(4px); box-shadow:0 2px 0 rgba(0,0,0,.18);}
+  .m-add{background:linear-gradient(120deg,#ff7eb3,#ff5fa2);}
+  .m-sub{background:linear-gradient(120deg,#5ec6ff,#4aa8ff);}
+  .m-mix{background:linear-gradient(120deg,#b18cff,#9b6dff);}
+  .m-start{background:linear-gradient(120deg,#4be07a,#34c759); font-size:1.4rem;}
+  .picker{margin-top:6px; text-align:center}
+  .picker .label{font-weight:bold; color:var(--purple); margin-bottom:6px}
+  .levelRow{display:flex; gap:8px; justify-content:center; flex-wrap:wrap;}
+  .lvl{border:none; border-radius:14px; padding:10px 16px; font-weight:bold; font-size:1rem;
+       cursor:pointer; font-family:inherit; background:#fff; color:var(--ink); box-shadow:0 4px 0 rgba(0,0,0,.12);}
+  .lvl.sel{background:var(--yellow); color:#7a5a00; transform:translateY(2px);}
+
+  /* Game */
+  .problem{
+    background:var(--card); border-radius:24px; padding:26px 16px; text-align:center;
+    box-shadow:0 8px 0 rgba(0,0,0,.08); margin-bottom:14px; position:relative;
+  }
+  .qtext{font-size:3.4rem; font-weight:bold; letter-spacing:2px;}
+  .answerBox{
+    display:inline-block; min-width:90px; border-bottom:6px dashed var(--purple);
+    color:var(--purple); margin-left:6px;
+  }
+  .choices{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .choice{
+    border:none; border-radius:18px; padding:20px; font-size:1.9rem; font-weight:bold;
+    background:linear-gradient(120deg,#fff,#f3f6ff); color:var(--ink); cursor:pointer;
+    font-family:inherit; box-shadow:0 6px 0 rgba(0,0,0,.12); transition:transform .07s;
+  }
+  .choice:active{transform:translateY(4px);}
+  .choice.good{background:linear-gradient(120deg,#6bf08e,#34c759); color:#fff; animation:shake-good .4s;}
+  .choice.bad{background:linear-gradient(120deg,#ff9a9a,#ff5b5b); color:#fff; animation:shake-bad .4s;}
+  @keyframes shake-good{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+  @keyframes shake-bad{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+
+  .timerbar{height:14px; background:#eee; border-radius:10px; overflow:hidden; margin-bottom:14px;}
+  .timerfill{height:100%; width:100%; background:linear-gradient(90deg,#34c759,#ffd23f,#ff5fa2); transition:width .2s linear;}
+
+  .feedback{text-align:center; font-size:1.3rem; font-weight:bold; height:30px; margin-top:10px;}
+
+  /* Results */
+  .bigstar{font-size:4.5rem; text-align:center; animation:spin 1.2s ease;}
+  @keyframes spin{from{transform:rotate(-30deg) scale(0)}to{transform:rotate(0) scale(1)}}
+  .resultStats{display:flex; justify-content:space-around; margin:14px 0; text-align:center;}
+  .resultStats div span{display:block;}
+  .resultStats .num{font-size:1.8rem; font-weight:bold; color:var(--blue);}
+  .praise{text-align:center; font-size:1.25rem; font-weight:bold; color:var(--green); margin:8px 0 16px;}
+
+  .ghost{background:transparent; border:none; color:var(--purple); font-weight:bold; cursor:pointer;
+         font-family:inherit; font-size:1rem; display:block; margin:10px auto 0;}
+
+  /* floating emojis */
+  .float{position:absolute; font-size:1.6rem; pointer-events:none; animation:rise 1.4s ease forwards;}
+  @keyframes rise{from{transform:translateY(0) scale(.6); opacity:1}to{transform:translateY(-160px) scale(1.4); opacity:0}}
+
+  .star-tray{font-size:1.4rem; text-align:center; letter-spacing:4px; margin-top:6px; min-height:26px;}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>Ana's Math Stars ⭐</h1>
+  <p class="sub">Answer fast to earn stars!</p>
+
+  <div class="hud">
+    <div class="chip"><span class="lbl">SCORE</span><span class="val" id="scoreV">0</span></div>
+    <div class="chip"><span class="lbl">STREAK 🔥</span><span class="val" id="streakV">0</span></div>
+    <div class="chip"><span class="lbl">STARS</span><span class="val" id="starsV">0</span></div>
+  </div>
+
+  <!-- MENU -->
+  <section class="screen active" id="menu">
+    <div class="menu-buttons">
+      <button class="modeBtn m-add" data-mode="add">➕ Adding</button>
+      <button class="modeBtn m-sub" data-mode="sub">➖ Subtracting</button>
+      <button class="modeBtn m-mix" data-mode="mix">🎲 Mix It Up</button>
+    </div>
+    <div class="picker">
+      <div class="label" style="margin-top:14px;">How big are the numbers?</div>
+      <div class="levelRow" id="levelRow">
+        <button class="lvl sel" data-max="10">Up to 10</button>
+        <button class="lvl" data-max="20">Up to 20</button>
+      </div>
+    </div>
+    <div class="menu-buttons" style="margin-top:16px;">
+      <button class="modeBtn m-start" id="startBtn">▶ Start!</button>
+    </div>
+    <div class="star-tray" id="trophyTray"></div>
+  </section>
+
+  <!-- GAME -->
+  <section class="screen" id="game">
+    <div class="timerbar"><div class="timerfill" id="timerfill"></div></div>
+    <div class="problem">
+      <div class="qtext"><span id="qa"></span> <span id="qop"></span> <span id="qb"></span> =
+        <span class="answerBox" id="ansShow">?</span></div>
+      <div class="float-layer" id="floatLayer"></div>
+    </div>
+    <div class="choices" id="choices"></div>
+    <div class="feedback" id="feedback"></div>
+    <button class="ghost" id="quitBtn">⏹ Stop</button>
+  </section>
+
+  <!-- RESULTS -->
+  <section class="screen" id="results">
+    <div class="bigstar" id="resultStar">🌟</div>
+    <div class="star-tray" id="earnedStars"></div>
+    <div class="resultStats">
+      <div><span class="num" id="rCorrect">0</span><span>Correct</span></div>
+      <div><span class="num" id="rBest">0</span><span>Best Streak 🔥</span></div>
+      <div><span class="num" id="rScore">0</span><span>Points</span></div>
+    </div>
+    <div class="praise" id="praise"></div>
+    <div class="menu-buttons">
+      <button class="modeBtn m-start" id="againBtn">🔁 Play Again</button>
+      <button class="modeBtn m-mix" id="menuBtn">🏠 Home</button>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+  // ---------- Persistent stars ----------
+  const LS_KEY = "anaMathStars";
+  let totalStars = parseInt(localStorage.getItem(LS_KEY) || "0", 10);
+
+  // ---------- State ----------
+  const ROUND_QUESTIONS = 10;
+  const TIME_PER_Q = 8;            // seconds; faster answers = more points
+  let mode = "add", maxN = 10;
+  let score=0, streak=0, bestStreak=0, correct=0, qIndex=0;
+  let answer=0, timeLeft=0, timer=null, locked=false;
+
+  // ---------- Elements ----------
+  const $ = id => document.getElementById(id);
+  const screens = { menu:$("menu"), game:$("game"), results:$("results") };
+  function show(name){ for(const k in screens) screens[k].classList.toggle("active", k===name); }
+  function refreshHUD(){ $("scoreV").textContent=score; $("streakV").textContent=streak; $("starsV").textContent=totalStars; }
+
+  // ---------- Sound (WebAudio, no files) ----------
+  let actx=null;
+  function beep(freq, dur=0.12, type="sine", vol=0.2){
+    try{
+      actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+      const o=actx.createOscillator(), g=actx.createGain();
+      o.type=type; o.frequency.value=freq; o.connect(g); g.connect(actx.destination);
+      g.gain.setValueAtTime(vol, actx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime+dur);
+      o.start(); o.stop(actx.currentTime+dur);
+    }catch(e){}
+  }
+  function happySound(){ beep(660,0.1,"triangle"); setTimeout(()=>beep(880,0.12,"triangle"),90); setTimeout(()=>beep(1175,0.15,"triangle"),190); }
+  function sadSound(){ beep(220,0.18,"sawtooth",0.15); }
+
+  // ---------- Menu wiring ----------
+  document.querySelectorAll(".modeBtn[data-mode]").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      document.querySelectorAll(".modeBtn[data-mode]").forEach(x=>x.style.outline="none");
+      mode=b.dataset.mode; b.style.outline="4px solid #fff";
+    });
+  });
+  document.querySelectorAll(".lvl").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      document.querySelectorAll(".lvl").forEach(x=>x.classList.remove("sel"));
+      b.classList.add("sel"); maxN=parseInt(b.dataset.max,10);
+    });
+  });
+  $("startBtn").addEventListener("click", startRound);
+  $("quitBtn").addEventListener("click", ()=>{ clearInterval(timer); endRound(); });
+  $("againBtn").addEventListener("click", startRound);
+  $("menuBtn").addEventListener("click", ()=>{ show("menu"); renderTrophies(); });
+
+  // ---------- Problem generation ----------
+  function randInt(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+  function makeProblem(){
+    let op = mode;
+    if(mode==="mix") op = Math.random()<0.5 ? "add" : "sub";
+    let a,b;
+    if(op==="add"){
+      a=randInt(0,maxN); b=randInt(0,maxN);
+      // keep sums reasonable for the level
+      if(a+b>maxN+maxN) b=maxN;
+      answer=a+b; $("qop").textContent="+";
+    }else{
+      a=randInt(0,maxN); b=randInt(0,a);  // no negatives
+      answer=a-b; $("qop").textContent="−";
+    }
+    $("qa").textContent=a; $("qb").textContent=b; $("ansShow").textContent="?";
+    buildChoices(answer);
+  }
+  function buildChoices(correctVal){
+    const set=new Set([correctVal]);
+    while(set.size<4){
+      let delta=randInt(-3,3); if(delta===0) delta=1;
+      let v=correctVal+delta;
+      if(v<0) v=correctVal+randInt(1,4);
+      set.add(v);
+    }
+    const opts=[...set].sort(()=>Math.random()-0.5);
+    const box=$("choices"); box.innerHTML="";
+    opts.forEach(v=>{
+      const btn=document.createElement("button");
+      btn.className="choice"; btn.textContent=v;
+      btn.addEventListener("click", ()=>choose(btn, v, correctVal));
+      box.appendChild(btn);
+    });
+  }
+
+  // ---------- Round flow ----------
+  function startRound(){
+    score=0; streak=0; bestStreak=0; correct=0; qIndex=0;
+    refreshHUD(); show("game"); nextQuestion();
+  }
+  function nextQuestion(){
+    if(qIndex>=ROUND_QUESTIONS){ endRound(); return; }
+    qIndex++; locked=false; $("feedback").textContent="";
+    makeProblem();
+    timeLeft=TIME_PER_Q; updateTimerBar();
+    clearInterval(timer);
+    timer=setInterval(()=>{
+      timeLeft-=0.1;
+      if(timeLeft<=0){ timeLeft=0; updateTimerBar(); timeUp(); }
+      else updateTimerBar();
+    },100);
+  }
+  function updateTimerBar(){ $("timerfill").style.width=(timeLeft/TIME_PER_Q*100)+"%"; }
+
+  function choose(btn, val, correctVal){
+    if(locked) return; locked=true; clearInterval(timer);
+    if(val===correctVal){
+      btn.classList.add("good");
+      $("ansShow").textContent=correctVal; $("ansShow").style.color="var(--green)";
+      correct++; streak++; bestStreak=Math.max(bestStreak,streak);
+      const speedBonus=Math.round(timeLeft*2);
+      const pts=10+speedBonus+(streak>=3?5:0);
+      score+=pts;
+      $("feedback").textContent = streak>=3 ? `🔥 ${streak} in a row! +${pts}` : `Yes! +${pts}`;
+      $("feedback").style.color="var(--green)";
+      happySound(); floatEmoji(streak>=5?"🌈":"⭐");
+    }else{
+      btn.classList.add("bad");
+      streak=0;
+      [...$("choices").children].forEach(c=>{ if(parseInt(c.textContent,10)===correctVal) c.classList.add("good"); });
+      $("ansShow").textContent=correctVal; $("ansShow").style.color="var(--green)";
+      $("feedback").textContent=`The answer is ${correctVal}. You'll get the next one!`;
+      $("feedback").style.color="var(--pink)";
+      sadSound();
+    }
+    refreshHUD();
+    setTimeout(nextQuestion, 1100);
+  }
+  function timeUp(){
+    if(locked) return; locked=true; streak=0;
+    [...$("choices").children].forEach(c=>{ if(parseInt(c.textContent,10)===answer) c.classList.add("good"); });
+    $("ansShow").textContent=answer; $("ansShow").style.color="var(--green)";
+    $("feedback").textContent=`Time! The answer is ${answer}.`; $("feedback").style.color="var(--blue)";
+    sadSound(); refreshHUD();
+    setTimeout(nextQuestion, 1300);
+  }
+
+  function floatEmoji(e){
+    const layer=$("floatLayer"); if(!layer) return;
+    const s=document.createElement("span"); s.className="float"; s.textContent=e;
+    s.style.left=(20+Math.random()*60)+"%"; s.style.top="40%";
+    layer.appendChild(s); setTimeout(()=>s.remove(),1400);
+  }
+
+  // ---------- Results ----------
+  function endRound(){
+    clearInterval(timer);
+    // award stars: based on correct out of 10
+    let earned=0;
+    if(correct>=9) earned=3; else if(correct>=7) earned=2; else if(correct>=4) earned=1;
+    totalStars+=earned; localStorage.setItem(LS_KEY, totalStars);
+    refreshHUD();
+
+    $("rCorrect").textContent=correct+"/"+ROUND_QUESTIONS;
+    $("rBest").textContent=bestStreak;
+    $("rScore").textContent=score;
+    $("earnedStars").textContent = earned>0 ? "⭐".repeat(earned)+"  (+"+earned+")" : "Keep practicing! 💪";
+    $("resultStar").textContent = correct>=9 ? "🏆" : correct>=7 ? "🌟" : correct>=4 ? "😊" : "🌱";
+
+    let msg;
+    if(correct>=9) msg="WOW! Math superstar! 🎉";
+    else if(correct>=7) msg="Great job, Ana! So close to perfect!";
+    else if(correct>=4) msg="Nice work! You're getting faster!";
+    else msg="Good try! Practice makes perfect 💪";
+    $("praise").textContent=msg;
+    show("results");
+  }
+
+  // ---------- Trophy tray on menu ----------
+  function renderTrophies(){
+    const t=$("trophyTray");
+    if(totalStars<=0){ t.textContent="Earn stars by playing! ⭐"; return; }
+    const shown=Math.min(totalStars,12);
+    t.textContent="⭐".repeat(shown) + (totalStars>12?` +${totalStars-12}`:"") + `  (${totalStars} total)`;
+  }
+
+  // ---------- Keyboard support (1-4 keys) ----------
+  document.addEventListener("keydown", e=>{
+    if(!screens.game.classList.contains("active")) return;
+    const idx={"1":0,"2":1,"3":2,"4":3}[e.key];
+    if(idx!=null){ const c=$("choices").children[idx]; if(c) c.click(); }
+  });
+
+  // init
+  refreshHUD(); renderTrophies();
+  document.querySelector('.modeBtn[data-mode="add"]').style.outline="4px solid #fff";
+})();
+</script>
+</body>
+</html>

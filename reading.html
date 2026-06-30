@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Ana's Reading Rockets 🚀</title>
+<style>
+  :root{
+    --ink:#22324d; --pink:#ff5fa2; --blue:#3aa0ff; --green:#34c759;
+    --yellow:#ffd23f; --purple:#9b6dff; --orange:#ff9f43; --card:#fff;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;margin:0;}
+  body{
+    font-family:"Comic Sans MS","Baloo 2",system-ui,sans-serif; color:var(--ink);
+    background:linear-gradient(135deg,#c9f0ff,#e7d6ff 50%,#ffe3f3);
+    background-size:300% 300%; animation:bg 18s ease infinite;
+    display:flex; align-items:center; justify-content:center; min-height:100%; padding:14px;
+  }
+  @keyframes bg{0%{background-position:0 50%}50%{background-position:100% 50%}100%{background-position:0 50%}}
+  .app{width:100%; max-width:560px; background:rgba(255,255,255,.82); border-radius:30px;
+       padding:22px 20px 26px; box-shadow:0 18px 50px rgba(90,80,160,.35); position:relative; overflow:hidden;}
+  h1{margin:0 0 2px; text-align:center; font-size:2rem; color:var(--blue);
+     text-shadow:2px 2px 0 #fff;}
+  .sub{text-align:center; margin:0 0 14px; font-size:.95rem; color:var(--purple); font-weight:bold;}
+
+  .hud{display:flex; justify-content:space-between; gap:8px; margin-bottom:14px;}
+  .chip{flex:1; background:var(--card); border-radius:16px; padding:8px 6px; text-align:center;
+        box-shadow:0 4px 0 rgba(0,0,0,.08); font-weight:bold;}
+  .chip .lbl{display:block; font-size:.68rem; color:#9aa; letter-spacing:.5px;}
+  .chip .val{font-size:1.25rem;}
+  #scoreV{color:var(--blue)} #starsV{color:var(--yellow)} #streakV{color:var(--pink)}
+
+  .screen{display:none; animation:pop .35s ease;}
+  .screen.active{display:block;}
+  @keyframes pop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
+
+  .menu-buttons{display:flex; flex-direction:column; gap:12px; margin-top:8px;}
+  .modeBtn{border:none; border-radius:20px; padding:16px; font-size:1.15rem; font-weight:bold; color:#fff;
+           cursor:pointer; font-family:inherit; box-shadow:0 6px 0 rgba(0,0,0,.18);
+           transition:transform .08s, box-shadow .08s; text-align:center;}
+  .modeBtn:active{transform:translateY(4px); box-shadow:0 2px 0 rgba(0,0,0,.18);}
+  .m-words{background:linear-gradient(120deg,#5ec6ff,#3aa0ff);}
+  .m-sentences{background:linear-gradient(120deg,#ff7eb3,#ff5fa2);}
+  .m-listen{background:linear-gradient(120deg,#b18cff,#9b6dff);}
+  .m-start{background:linear-gradient(120deg,#4be07a,#34c759); font-size:1.35rem;}
+  .m-orange{background:linear-gradient(120deg,#ffc14d,#ff9f43);}
+
+  .picker .label{font-weight:bold; color:var(--purple); margin:14px 0 6px; text-align:center;}
+  .levelRow{display:flex; gap:8px; justify-content:center; flex-wrap:wrap;}
+  .lvl{border:none; border-radius:14px; padding:10px 16px; font-weight:bold; font-size:1rem; cursor:pointer;
+       font-family:inherit; background:#fff; color:var(--ink); box-shadow:0 4px 0 rgba(0,0,0,.12);}
+  .lvl.sel{background:var(--yellow); color:#7a5a00; transform:translateY(2px);}
+
+  .card-read{background:var(--card); border-radius:24px; padding:30px 18px; text-align:center;
+             box-shadow:0 8px 0 rgba(0,0,0,.08); margin-bottom:14px; min-height:150px;
+             display:flex; flex-direction:column; justify-content:center;}
+  .word{font-size:3.4rem; font-weight:bold; letter-spacing:1px; color:var(--ink); line-height:1.15;}
+  .sentence{font-size:1.9rem; font-weight:bold; line-height:1.5; color:var(--ink);}
+  .sentence .w{padding:1px 3px; border-radius:6px; transition:background .2s;}
+  .sentence .w.hit{background:#bff7c8;}
+  .hint{font-size:.95rem; color:var(--purple); margin-top:12px; min-height:22px; font-weight:bold;}
+
+  .controls{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .controls.three{grid-template-columns:1fr 1fr 1fr;}
+  .micState{text-align:center; font-weight:bold; min-height:26px; margin:8px 0; font-size:1.05rem;}
+  .pulse{display:inline-block; width:14px; height:14px; border-radius:50%; background:#ff5b5b; margin-right:8px;
+         animation:pulse 1s infinite;}
+  @keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.5);opacity:.5}}
+
+  .feedback{text-align:center; font-size:1.25rem; font-weight:bold; height:28px; margin-top:8px;}
+  .progress{font-size:.85rem; text-align:center; color:#88a; margin-bottom:8px; font-weight:bold;}
+
+  .bigstar{font-size:4.5rem; text-align:center; animation:spin 1.2s ease;}
+  @keyframes spin{from{transform:rotate(-30deg) scale(0)}to{transform:rotate(0) scale(1)}}
+  .resultStats{display:flex; justify-content:space-around; margin:14px 0; text-align:center;}
+  .resultStats .num{font-size:1.7rem; font-weight:bold; color:var(--blue); display:block;}
+  .praise{text-align:center; font-size:1.2rem; font-weight:bold; color:var(--green); margin:8px 0 16px;}
+  .ghost{background:transparent; border:none; color:var(--purple); font-weight:bold; cursor:pointer;
+         font-family:inherit; font-size:1rem; display:block; margin:10px auto 0;}
+  .star-tray{font-size:1.4rem; text-align:center; letter-spacing:4px; margin-top:10px; min-height:26px;}
+  .timerbar{height:16px; background:#eee; border-radius:10px; overflow:hidden; margin-bottom:12px;
+            box-shadow:inset 0 2px 4px rgba(0,0,0,.1);}
+  .timerfill{height:100%; width:100%; background:linear-gradient(90deg,#34c759,#ffd23f,#ff5b5b); transition:width .15s linear;}
+  .wcpm-big{font-size:3.2rem; font-weight:bold; color:var(--blue); text-align:center; line-height:1;}
+  .wcpm-lbl{text-align:center; font-weight:bold; color:var(--purple); margin-bottom:6px;}
+  .float{position:absolute; font-size:1.7rem; pointer-events:none; animation:rise 1.4s ease forwards;}
+  @keyframes rise{from{transform:translateY(0) scale(.6);opacity:1}to{transform:translateY(-170px) scale(1.4);opacity:0}}
+  .note{font-size:.78rem; color:#7a8; text-align:center; margin-top:10px; line-height:1.4;}
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>Ana's Reading Rockets 🚀</h1>
+  <p class="sub">Read out loud to blast off!</p>
+
+  <div class="hud">
+    <div class="chip"><span class="lbl">SCORE</span><span class="val" id="scoreV">0</span></div>
+    <div class="chip"><span class="lbl">STREAK 🔥</span><span class="val" id="streakV">0</span></div>
+    <div class="chip"><span class="lbl">STARS</span><span class="val" id="starsV">0</span></div>
+  </div>
+
+  <!-- MENU -->
+  <section class="screen active" id="menu">
+    <div class="menu-buttons">
+      <button class="modeBtn m-words" data-mode="words">🔤 Word Sprint</button>
+      <button class="modeBtn m-sentences" data-mode="sentences">📖 Sentence Stars</button>
+      <button class="modeBtn m-listen" data-mode="listen">👂 Hear &amp; Repeat</button>
+      <button class="modeBtn m-orange" data-mode="speed">⏱️ Speed Read (30s)</button>
+    </div>
+    <div class="picker">
+      <div class="label">Pick a level</div>
+      <div class="levelRow" id="levelRow">
+        <button class="lvl sel" data-level="1">⭐ Easy</button>
+        <button class="lvl" data-level="2">⭐⭐ Medium</button>
+        <button class="lvl" data-level="3">⭐⭐⭐ Challenge</button>
+      </div>
+    </div>
+    <div class="menu-buttons" style="margin-top:16px;">
+      <button class="modeBtn m-start" id="startBtn">▶ Start!</button>
+    </div>
+    <div class="star-tray" id="trophyTray"></div>
+    <div class="note" id="micNote"></div>
+  </section>
+
+  <!-- GAME -->
+  <section class="screen" id="game">
+    <div class="progress" id="progress"></div>
+    <div class="timerbar" id="timerbar" style="display:none;"><div class="timerfill" id="timerfill"></div></div>
+    <div class="card-read">
+      <div id="display" class="word"></div>
+      <div class="hint" id="hint"></div>
+      <div class="float-layer" id="floatLayer"></div>
+    </div>
+    <div class="micState" id="micState"></div>
+    <div class="controls" id="controls"></div>
+    <div class="feedback" id="feedback"></div>
+    <button class="ghost" id="quitBtn">⏹ Stop</button>
+  </section>
+
+  <!-- RESULTS -->
+  <section class="screen" id="results">
+    <div class="bigstar" id="resultStar">🌟</div>
+    <div id="wcpmBlock" style="display:none;">
+      <div class="wcpm-big" id="wcpmVal">0</div>
+      <div class="wcpm-lbl">words per minute 🚀</div>
+    </div>
+    <div class="star-tray" id="earnedStars"></div>
+    <div class="resultStats" id="resultStats">
+      <div><span class="num" id="rCorrect">0</span>Read Great</div>
+      <div><span class="num" id="rBest">0</span>Best Streak 🔥</div>
+      <div><span class="num" id="rScore">0</span>Points</div>
+    </div>
+    <div class="praise" id="praise"></div>
+    <div class="menu-buttons">
+      <button class="modeBtn m-start" id="againBtn">🔁 Play Again</button>
+      <button class="modeBtn m-listen" id="menuBtn">🏠 Home</button>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+  // ---------- Word & sentence banks (Grade 2 sight words + decodable sentences) ----------
+  const WORDS = {
+    1: ["the","and","you","was","for","are","not","but","had","his",
+        "she","they","one","look","play","said","this","with","that","have",
+        "run","jump","stop","help","good","blue","red","big","dog","cat"],
+    2: ["because","before","family","friend","little","please","there","where","every","other",
+        "around","color","water","funny","happy","under","over","again","right","light",
+        "school","green","brown","first","found","about","could","would","should","their"],
+    3: ["beautiful","different","important","favorite","together","another","through","thought",
+        "people","question","carry","myself","tomorrow","surprise","remember","mountain",
+        "elephant","dinosaur","butterfly","everyone","sometimes","wonderful","adventure","chocolate"]
+  };
+  const SENTENCES = {
+    1: ["The big red dog can run.","I see a cat and a hat.","We like to jump and play.",
+        "She had fun in the sun.","Look at the blue fish.","Can you help me stop?",
+        "The pig is in the mud.","He has a good book."],
+    2: ["My friend and I play together.","The little duck swims in the water.","We went to school in the morning.",
+        "Please give the green ball to her.","There are many colors in the rainbow.","I found a funny frog by the pond.",
+        "The happy bird sings every day.","We can read a story before bed."],
+    3: ["The beautiful butterfly landed on a bright flower.","My favorite adventure was climbing the tall mountain.",
+        "Everyone was surprised by the wonderful gift.","Sometimes I read a different book every night.",
+        "The enormous elephant walked slowly through the jungle.","Remember to bring your umbrella tomorrow morning.",
+        "Together we built an amazing castle out of blocks.","The curious dinosaur looked for something to eat."]
+  };
+
+  // ---------- Speech setup ----------
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const canListen = !!SR;
+  const canSpeak = "speechSynthesis" in window;
+  let recog=null;
+
+  function speak(text, rate=0.9){
+    if(!canSpeak) return;
+    try{
+      window.speechSynthesis.cancel();
+      const u=new SpeechSynthesisUtterance(text);
+      u.rate=rate; u.pitch=1.1; u.lang="en-US";
+      window.speechSynthesis.speak(u);
+    }catch(e){}
+  }
+
+  // ---------- State ----------
+  const ROUND=8;
+  const SPEED_SECONDS=30;
+  let mode="words", level=1;
+  let score=0, streak=0, best=0, good=0, idx=0, current="", locked=false;
+  // speed-mode state
+  let speedTimer=null, speedLeft=0, speedCorrect=0, speedAttempt=0, speedActive=false;
+  const LS="anaReadingStars";
+  const LS_WCPM="anaReadingBestWCPM";
+  let totalStars=parseInt(localStorage.getItem(LS)||"0",10);
+  let bestWCPM=parseInt(localStorage.getItem(LS_WCPM)||"0",10);
+
+  const $=id=>document.getElementById(id);
+  const screens={menu:$("menu"),game:$("game"),results:$("results")};
+  function show(n){for(const k in screens)screens[k].classList.toggle("active",k===n);}
+  function hud(){$("scoreV").textContent=score;$("streakV").textContent=streak;$("starsV").textContent=totalStars;}
+
+  // ---------- Sounds ----------
+  let actx=null;
+  function beep(f,d=0.12,t="sine",v=0.2){try{actx=actx||new(window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(),g=actx.createGain();o.type=t;o.frequency.value=f;o.connect(g);g.connect(actx.destination);
+    g.gain.setValueAtTime(v,actx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,actx.currentTime+d);
+    o.start();o.stop(actx.currentTime+d);}catch(e){}}
+  function yay(){beep(660,0.1,"triangle");setTimeout(()=>beep(880,0.12,"triangle"),90);setTimeout(()=>beep(1175,0.15,"triangle"),190);}
+  function nope(){beep(240,0.18,"sawtooth",0.13);}
+
+  // ---------- Menu wiring ----------
+  document.querySelectorAll(".modeBtn[data-mode]").forEach(b=>{
+    b.addEventListener("click",()=>{document.querySelectorAll(".modeBtn[data-mode]").forEach(x=>x.style.outline="none");
+      mode=b.dataset.mode;b.style.outline="4px solid #fff";});
+  });
+  document.querySelectorAll(".lvl").forEach(b=>{
+    b.addEventListener("click",()=>{document.querySelectorAll(".lvl").forEach(x=>x.classList.remove("sel"));
+      b.classList.add("sel");level=parseInt(b.dataset.level,10);});
+  });
+  $("startBtn").addEventListener("click",startRound);
+  $("quitBtn").addEventListener("click",()=>{stopListen(); if(mode==="speed"&&speedActive){endSpeed();} else {endRound();}});
+  $("againBtn").addEventListener("click",startRound);
+  $("menuBtn").addEventListener("click",()=>{show("menu");trophies();});
+
+  // ---------- Round flow ----------
+  function startRound(){
+    score=0;streak=0;best=0;good=0;idx=0;hud();show("game");
+    if(mode==="speed"){ startSpeed(); }
+    else { $("timerbar").style.display="none"; next(); }
+  }
+
+  function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+
+  function next(){
+    if(idx>=ROUND){endRound();return;}
+    idx++; locked=false; $("feedback").textContent=""; $("micState").textContent="";
+    $("progress").textContent=`Card ${idx} of ${ROUND}`;
+    const disp=$("display");
+
+    if(mode==="words"){
+      current=pick(WORDS[level]);
+      disp.className="word"; disp.textContent=current;
+      $("hint").textContent="Read the word out loud!";
+      buildControls();
+    } else if(mode==="sentences"){
+      current=pick(SENTENCES[level]);
+      disp.className="sentence";
+      disp.innerHTML=current.split(" ").map(w=>`<span class="w">${w}</span>`).join(" ");
+      $("hint").textContent="Read the whole sentence!";
+      buildControls();
+    } else { // listen
+      current=pick(level<=1?WORDS[1].concat(WORDS[2]):SENTENCES[level]);
+      disp.className= current.includes(" ")?"sentence":"word";
+      disp.textContent="👂 ? ? ?";
+      $("hint").textContent="Press Hear It, then say it back!";
+      speak(current,0.85);
+      buildControls(true);
+    }
+  }
+
+  // ---------- Speed Read (30s) — CBMreading-style fluency, scored in WCPM ----------
+  let speedPool=[], speedQueue=[];
+  function speedWords(){
+    let pool=WORDS[level].slice();
+    if(level>1) pool=pool.concat(WORDS[level-1]); // mix in easier words for flow
+    return pool;
+  }
+  function nextSpeedWord(){
+    if(speedQueue.length===0) speedQueue=speedPool.slice().sort(()=>Math.random()-0.5);
+    current=speedQueue.pop();
+    const d=$("display"); d.className="word"; d.textContent=current;
+  }
+  function startSpeed(){
+    speedActive=true; speedCorrect=0; speedAttempt=0; speedLeft=SPEED_SECONDS;
+    speedPool=speedWords(); speedQueue=[];
+    $("timerbar").style.display="block"; updateSpeedBar();
+    $("hint").textContent="Read each word out loud, then tap ✅. Go fast! 🚀";
+    buildSpeedControls();
+    nextSpeedWord();
+    if(canListen) speedListen();
+    clearInterval(speedTimer);
+    speedTimer=setInterval(()=>{
+      speedLeft-=0.1;
+      if(speedLeft<=0){ speedLeft=0; updateSpeedBar(); endSpeed(); }
+      else updateSpeedBar();
+    },100);
+  }
+  function updateSpeedBar(){
+    $("timerfill").style.width=(Math.max(0,speedLeft)/SPEED_SECONDS*100)+"%";
+    $("progress").textContent=`⏱️ ${Math.ceil(speedLeft)}s   •   ${speedCorrect} read`;
+  }
+  function speedGot(){
+    if(!speedActive) return;
+    speedCorrect++; speedAttempt++; good=speedCorrect; streak++; best=Math.max(best,streak);
+    beep(900,0.05,"triangle",0.14); floatE(streak>=8?"🚀":"⭐"); hud(); nextSpeedWord();
+  }
+  function speedSkip(){ if(!speedActive) return; speedAttempt++; streak=0; nextSpeedWord(); }
+  function buildSpeedControls(){
+    const c=$("controls"); c.innerHTML=""; c.className="controls"+(canSpeak?" three":"");
+    if(canSpeak){ const h=mk("🔊 Hear It","m-orange"); h.onclick=()=>speak(current,0.9); c.appendChild(h); }
+    const got=mk("✅ Got It!","m-start"); got.onclick=speedGot; c.appendChild(got);
+    const skip=mk("⏭️ Skip","m-listen"); skip.onclick=speedSkip; c.appendChild(skip);
+  }
+  function speedListen(){
+    if(!canListen) return;
+    stopListen();
+    recog=new SR(); recog.lang="en-US"; recog.continuous=true; recog.interimResults=true; recog.maxAlternatives=1;
+    $("micState").innerHTML='<span class="pulse"></span>Listening — just read each word!';
+    recog.onresult=e=>{
+      const r=e.results[e.results.length-1];
+      const heard=norm(r[0].transcript).split(" ").filter(Boolean);
+      if(speedActive && heard.includes(norm(current))) speedGot();
+    };
+    recog.onerror=ev=>{ if(ev.error==="not-allowed") $("micState").textContent="🎤 Mic off — tap ✅ Got It instead."; };
+    recog.onend=()=>{ if(speedActive){ try{recog.start();}catch(e){} } };
+    try{ recog.start(); }catch(e){}
+  }
+  function endSpeed(){
+    speedActive=false; clearInterval(speedTimer); stopListen(); $("micState").textContent="";
+    const wcpm=Math.round(speedCorrect*(60/SPEED_SECONDS));
+    let earned=0; if(wcpm>=60)earned=3; else if(wcpm>=40)earned=2; else if(wcpm>=20)earned=1;
+    totalStars+=earned; localStorage.setItem(LS,totalStars);
+    let pb=false;
+    if(wcpm>bestWCPM){ bestWCPM=wcpm; localStorage.setItem(LS_WCPM,bestWCPM); pb=true; }
+    hud();
+    yay();
+    $("timerbar").style.display="none";
+    $("wcpmBlock").style.display="block"; $("wcpmVal").textContent=wcpm;
+    $("resultStats").innerHTML=
+      `<div><span class="num">${speedCorrect}</span>Words Read</div>`+
+      `<div><span class="num">${bestWCPM}</span>Best Ever 🏆</div>`+
+      `<div><span class="num">${earned}</span>Stars ⭐</div>`;
+    $("earnedStars").textContent= earned>0?"⭐".repeat(earned)+"  (+"+earned+")":"Keep practicing! 💪";
+    // Grade-2 spring benchmark ~ 100 WCPM (50th %ile); celebrate progress, never discourage
+    $("resultStar").textContent= wcpm>=80?"🏆":wcpm>=50?"🌟":wcpm>=25?"😊":"🌱";
+    let msg;
+    if(pb && wcpm>0) msg=`🎉 NEW RECORD! ${wcpm} words per minute!`;
+    else if(wcpm>=80) msg="WOW! Super speedy reader! 🚀";
+    else if(wcpm>=50) msg="Great pace, Ana! Keep it up!";
+    else if(wcpm>=25) msg="Nice reading! A little faster each time! 💪";
+    else msg="Good try! Reading out loud every day helps you speed up 🌱";
+    $("praise").textContent=msg;
+    show("results");
+  }
+
+  function buildControls(listenMode){
+    const c=$("controls"); c.innerHTML="";
+    c.className= "controls" + ((canListen)?" three":"");
+    // Hear It
+    if(canSpeak){
+      const hear=mk("🔊 Hear It","m-orange"); hear.onclick=()=>{ 
+        if(listenMode) disp_reveal(); speak(current,0.85); };
+      c.appendChild(hear);
+    }
+    if(canListen){
+      const mic=mk("🎤 I'll Read","m-sentences"); mic.onclick=()=>startListen();
+      c.appendChild(mic);
+    }
+    // self-confirm fallback (always available)
+    const done=mk(canListen?"✅ I Read It":"✅ I Read It Right!","m-start");
+    done.onclick=()=>{ if(listenMode) disp_reveal(); succeed(8,"Great reading! ⭐"); };
+    c.appendChild(done);
+
+    if(!canListen){ // give a skip / hard option
+      const skip=mk("🤔 Tricky","m-listen"); skip.onclick=()=>tricky();
+      c.appendChild(skip);
+      c.className="controls"+(canSpeak?" three":"");
+    }
+  }
+  function disp_reveal(){ const d=$("display"); d.textContent=current; }
+
+  function mk(label,cls){const b=document.createElement("button");b.className="modeBtn "+cls;b.textContent=label;return b;}
+
+  // ---------- Speech recognition ----------
+  function startListen(){
+    if(!canListen) return;
+    stopListen();
+    recog=new SR(); recog.lang="en-US"; recog.interimResults=true; recog.maxAlternatives=3;
+    $("micState").innerHTML='<span class="pulse"></span>Listening... read now!';
+    let finalText=""; let errored=null;
+    recog.onresult=e=>{
+      let interim="";
+      for(let i=e.resultIndex;i<e.results.length;i++){
+        const r=e.results[i];
+        if(r.isFinal) finalText+=" "+r[0].transcript;
+        else interim+=r[0].transcript;
+      }
+      // live highlight
+      highlight((finalText+" "+interim));
+    };
+    recog.onerror=ev=>{ errored=ev.error; $("micState").textContent=recogErrMsg(ev.error); };
+    recog.onend=()=>{
+      if(errored){ return; }              // don't grade on error
+      $("micState").textContent="";
+      if(norm(finalText)) grade(finalText);
+      else $("micState").textContent="🤔 I didn't hear anything — try again or tap ✅.";
+    };
+    try{ recog.start(); }catch(e){}
+  }
+  function recogErrMsg(err){
+    if(err==="not-allowed"||err==="service-not-allowed")
+      return "🎤 Mic is blocked. Click the 🔒/camera icon in the address bar → Allow microphone.";
+    if(err==="network")
+      return "🌐 Speech needs the internet AND a localhost/https page — see the note below. Use ✅ for now.";
+    if(err==="no-speech") return "🤔 Didn't hear anything — read a little louder, or tap ✅.";
+    if(err==="audio-capture") return "🎤 No microphone found. Use ✅ I Read It instead.";
+    return "Hmm, try again or tap ✅.";
+  }
+  function stopListen(){ if(recog){ try{recog.onend=null;recog.onerror=null;recog.stop();}catch(e){} recog=null; } }
+
+  function norm(s){ return (s||"").toLowerCase().replace(/[^a-z\s]/g," ").replace(/\s+/g," ").trim(); }
+
+  function highlight(heard){
+    if(mode!=="sentences") return;
+    const said=new Set(norm(heard).split(" "));
+    [...$("display").querySelectorAll(".w")].forEach(span=>{
+      const w=norm(span.textContent);
+      if(said.has(w)) span.classList.add("hit");
+    });
+  }
+
+  function grade(heard){
+    if(locked) return;
+    const target=norm(current).split(" ").filter(Boolean);
+    const said=norm(heard).split(" ").filter(Boolean);
+    const saidSet=new Set(said);
+    let hit=0; target.forEach(w=>{ if(saidSet.has(w)) hit++; });
+    const ratio= target.length? hit/target.length : 0;
+
+    if(mode==="words"){
+      if(saidSet.has(target[0])||ratio>=0.5){ succeed(10,"Perfect! 🌟"); }
+      else { miss(`I heard "${heard.trim()||'...'}". Try again!`); }
+    } else {
+      if(ratio>=0.75){ succeed(10+Math.round(ratio*5),`You read ${hit}/${target.length} words! 🎉`); }
+      else if(ratio>=0.4){ partial(`Good start — ${hit}/${target.length} words. Read it once more!`); }
+      else { miss(`Let's try again. Tap 🔊 Hear It for help.`); }
+    }
+  }
+
+  // ---------- Scoring ----------
+  function succeed(pts,msg){
+    if(locked) return; locked=true; stopListen();
+    good++; streak++; best=Math.max(best,streak);
+    const bonus=streak>=3?5:0; score+=pts+bonus;
+    $("feedback").textContent=msg+(bonus?` 🔥+${bonus}`:""); $("feedback").style.color="var(--green)";
+    if(mode==="sentences"){[...$("display").querySelectorAll(".w")].forEach(s=>s.classList.add("hit"));}
+    yay(); floatE(streak>=5?"🚀":"⭐"); hud(); setTimeout(next,1200);
+  }
+  function partial(msg){ // not locked — let her retry
+    streak=0; $("feedback").textContent=msg; $("feedback").style.color="var(--orange)"; nope(); hud();
+  }
+  function miss(msg){ streak=0; $("feedback").textContent=msg; $("feedback").style.color="var(--pink)"; nope(); hud(); }
+  function tricky(){ // self-marked hard word: hear it, no streak, small points, move on
+    if(locked) return; locked=true; streak=0; score+=3;
+    speak(current,0.8); $("feedback").textContent=`This word is "${current}". You'll get it next time! 💪`;
+    $("feedback").style.color="var(--purple)"; hud(); setTimeout(next,1500);
+  }
+
+  function floatE(e){const l=$("floatLayer");if(!l)return;const s=document.createElement("span");
+    s.className="float";s.textContent=e;s.style.left=(20+Math.random()*60)+"%";s.style.top="40%";
+    l.appendChild(s);setTimeout(()=>s.remove(),1400);}
+
+  // ---------- Results ----------
+  function endRound(){
+    stopListen();
+    $("timerbar").style.display="none"; $("wcpmBlock").style.display="none";
+    $("resultStats").innerHTML=
+      `<div><span class="num" id="rCorrect">0</span>Read Great</div>`+
+      `<div><span class="num" id="rBest">0</span>Best Streak 🔥</div>`+
+      `<div><span class="num" id="rScore">0</span>Points</div>`;
+    let earned=0; if(good>=8)earned=3; else if(good>=6)earned=2; else if(good>=3)earned=1;
+    totalStars+=earned; localStorage.setItem(LS,totalStars); hud();
+    $("rCorrect").textContent=good+"/"+ROUND; $("rBest").textContent=best; $("rScore").textContent=score;
+    $("earnedStars").textContent= earned>0?"⭐".repeat(earned)+"  (+"+earned+")":"Keep practicing! 💪";
+    $("resultStar").textContent= good>=8?"🏆":good>=6?"🌟":good>=3?"😊":"🌱";
+    $("praise").textContent= good>=8?"WOW! Reading superstar! 🎉"
+      : good>=6?"Great reading, Ana! Keep it up!"
+      : good>=3?"Nice work — you're getting faster!"
+      : "Good try! Reading out loud every day helps 💪";
+    show("results");
+  }
+
+  // ---------- Trophies / note ----------
+  function trophies(){const t=$("trophyTray");
+    const rec = bestWCPM>0 ? `   🏆 Best speed: ${bestWCPM} wpm` : "";
+    if(totalStars<=0){t.textContent="Earn stars by reading! ⭐"+rec;return;}
+    const n=Math.min(totalStars,12);
+    t.textContent="⭐".repeat(n)+(totalStars>12?` +${totalStars-12}`:"")+`  (${totalStars} total)`+rec;}
+
+  function micNote(){
+    const n=$("micNote");
+    if(!canListen){ n.innerHTML="ℹ️ Your browser can't use the microphone, so use the <b>✅ I Read It</b> button after reading aloud. (Chrome/Edge add mic listening.)"; return; }
+    if(location.protocol==="file:"){
+      n.innerHTML="⚠️ <b>The mic won't work when opened as a file.</b> Speech recognition needs a <b>localhost</b> or <b>https</b> page. Open this game at <b>http://localhost:8765/</b> (a local server). Until then, the <b>✅ I Read It</b> button works everywhere.";
+    } else {
+      n.innerHTML="🎤 Tip: works best in <b>Chrome</b> or <b>Edge</b>. Allow the microphone so the game can hear Ana read!";
+    }
+  }
+
+  hud(); trophies(); micNote();
+  document.querySelector('.modeBtn[data-mode="words"]').style.outline="4px solid #fff";
+})();
+</script>
+</body>
+</html>
